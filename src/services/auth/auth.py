@@ -4,7 +4,7 @@ from starlette.responses import Response
 from src import utils
 from src.exceptions.api import APIError
 from src.models import UserStates, schemas
-from src.services.repository import UserRepository
+from src.services import repository
 from . import JWTManager, SessionManager
 
 
@@ -12,7 +12,6 @@ async def authenticate(
         login: str,
         password: str,
         response: Response,
-        user_repo: UserRepository = UserRepository(),
         jwt: JWTManager = JWTManager(),
         session: SessionManager = SessionManager()
 ):
@@ -27,7 +26,7 @@ async def authenticate(
     :return:
     """
 
-    user = await user_repo.get_user(username=login)
+    user = await repository.user.get_user(username=login)
     if not user:
         raise APIError(904)
     if not utils.verify_password(password, user.hashed_password):
@@ -68,7 +67,6 @@ async def logout(
 async def refresh_tokens(
         request: Request,
         response: Response,
-        user_repo: UserRepository = UserRepository(),
         jwt: JWTManager = JWTManager(),
         session: SessionManager = SessionManager()
 ):
@@ -83,7 +81,7 @@ async def refresh_tokens(
     """
     current_tokens = jwt.get_jwt_cookie(request)
     session_id = session.get_session_id(request)
-    user = await user_repo.get_user(id=jwt.decode_refresh_token(current_tokens.refresh_token).id)
+    user = await repository.user.get_user(id=jwt.decode_refresh_token(current_tokens.refresh_token).id)
 
     if not (user.state_id == UserStates.active):
         raise APIError(906)

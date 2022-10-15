@@ -4,7 +4,7 @@ import logging
 import aioredis
 import aioredis.sentinel
 from aioredis.exceptions import RedisError
-from ..config import load_config
+from config import load_config
 
 config = load_config()
 
@@ -52,9 +52,10 @@ class RedisClient(object):
             # else:
             cls.base_redis_init_kwargs.update(cls.connection_kwargs)
             cls.redis_client = aioredis.from_url(
-                "redis://{0:s}".format(config.db.redis.host), # todo установить номер бд
+                "redis://{0:s}/0".format(config.db.redis.host),
                 **cls.base_redis_init_kwargs,
             )
+            print(cls.redis_client)  # todo: delete this line
 
         return cls.redis_client
 

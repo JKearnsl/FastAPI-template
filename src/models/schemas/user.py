@@ -4,7 +4,7 @@ from typing import Optional
 from pydantic import BaseModel, validator, ValidationError
 from tortoise import fields
 
-from ...utils import validators
+from utils import validators
 
 
 class User(BaseModel):

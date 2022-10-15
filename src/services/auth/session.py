@@ -2,8 +2,8 @@ import uuid
 from typing import Optional
 
 from fastapi import Request, Response
-from ...config import load_config
-from ...utils import RedisClient
+from config import load_config
+from utils import RedisClient
 
 config = load_config()
 

@@ -1,5 +1,8 @@
 import configparser
+import os
 from typing import Optional
+
+from version import __version__
 
 import consul
 from dataclasses import dataclass
@@ -65,6 +68,7 @@ class Base:
 @dataclass
 class Config:
     debug: bool
+    is_secure_cookie: bool
     base: Base
     email: Email
     db: DbConfig
@@ -74,7 +78,7 @@ class KVManager:
 
     def __init__(self, kv):
         self.config = kv
-        self.path_list = ["milk-back"]
+        self.path_list = ["haha-ton"]
 
     def __getitem__(self, node: str):
         self.path_list.append(node)
@@ -82,49 +86,55 @@ class KVManager:
 
     def value(self):
         path = "/".join(self.path_list)
-        return self.config.get(path)[1]["Value"].decode('utf-8')
+        value = self.config.get(path)[1]["Value"]
+        if value:
+            return value.decode("utf-8")
+        return None
 
 
 def load_config() -> Config:
-    config = consul.Consul().kv
+    config = consul.Consul(host="192.168.3.41").kv
+    mode = os.getenv('MODE')
+    debug = os.getenv('DEBUG')
     return Config(
-        debug=bool(int(KVManager(config)["milk-back"]["debug"].value())),
+        debug=bool(int(debug)),
+        is_secure_cookie=bool(int(KVManager(config)[mode]["is_secure_cookie"].value())),
         base=Base(
-            name=KVManager(config)["milk-back"]["base"]["name"].value(),
-            description=KVManager(config)["milk-back"]["base"]["description"].value(),
-            vers=KVManager(config)["milk-back"]["base"]["vers"].value(),
+            name=KVManager(config)["base"]["name"].value(),
+            description=KVManager(config)["base"]["description"].value(),
+            vers=__version__,
             contact=Contact(
-                name=KVManager(config)["milk-back"]["base"]["contact"]["name"].value(),
-                url=KVManager(config)["milk-back"]["base"]["contact"]["url"].value(),
-                email=KVManager(config)["milk-back"]["base"]["contact"]["email"].value()
+                name=KVManager(config)["base"]["contact"]["name"].value(),
+                url=KVManager(config)["base"]["contact"]["url"].value(),
+                email=KVManager(config)["base"]["contact"]["email"].value()
             ),
             jwt=JWT(
-                JWT_ACCESS_SECRET_KEY=KVManager(config)["milk-back"]["base"]["jwt"]["JWT_ACCESS_SECRET_KEY"].value(),
-                JWT_REFRESH_SECRET_KEY=KVManager(config)["milk-back"]["base"]["jwt"]["JWT_REFRESH_SECRET_KEY"].value()
+                JWT_ACCESS_SECRET_KEY=KVManager(config)[mode]["jwt"]["JWT_ACCESS_SECRET_KEY"].value(),
+                JWT_REFRESH_SECRET_KEY=KVManager(config)[mode]["jwt"]["JWT_REFRESH_SECRET_KEY"].value()
             )
         ),
         db=DbConfig(
             postgresql=PostgresConfig(
-                host=KVManager(config)["milk-back"]["database"]["postgresql"]["host"].value(),
-                port=int(KVManager(config)["milk-back"]["database"]["postgresql"]["port"].value()),
-                username=KVManager(config)["milk-back"]["database"]["postgresql"]["username"].value(),
-                password=KVManager(config)["milk-back"]["database"]["postgresql"]["password"].value(),
-                database=KVManager(config)["milk-back"]["database"]["postgresql"]["name"].value()
+                host=KVManager(config)[mode]["database"]["postgresql"]["host"].value(),
+                port=int(KVManager(config)[mode]["database"]["postgresql"]["port"].value()),
+                username=KVManager(config)[mode]["database"]["postgresql"]["username"].value(),
+                password=KVManager(config)[mode]["database"]["postgresql"]["password"].value(),
+                database=KVManager(config)[mode]["database"]["postgresql"]["name"].value()
             ),
             redis=RedisConfig(
-                host=KVManager(config)["milk-back"]["database"]["redis"]["host"].value(),
+                host=KVManager(config)[mode]["database"]["redis"]["host"].value(),
                 username=None,
-                password=KVManager(config)["milk-back"]["database"]["redis"]["password"].value(),
-                port=int(KVManager(config)["milk-back"]["database"]["redis"]["port"].value())
+                password=KVManager(config)[mode]["database"]["redis"]["password"].value(),
+                port=int(KVManager(config)[mode]["database"]["redis"]["port"].value())
             )
         ),
         email=Email(
-            isTLS=bool(int(KVManager(config)["milk-back"]["email"]["isTLS"].value())),
-            isSSL=bool(int(KVManager(config)["milk-back"]["email"]["isSSL"].value())),
-            host=KVManager(config)["milk-back"]["email"]["host"].value(),
-            port=int(KVManager(config)["milk-back"]["email"]["port"].value()),
-            user=KVManager(config)["milk-back"]["email"]["user"].value(),
-            password=KVManager(config)["milk-back"]["email"]["password"].value()
+            isTLS=bool(int(KVManager(config)["base"]["email"]["isTLS"].value())),
+            isSSL=bool(int(KVManager(config)["base"]["email"]["isSSL"].value())),
+            host=KVManager(config)["base"]["email"]["host"].value(),
+            port=int(KVManager(config)["base"]["email"]["port"].value()),
+            user=KVManager(config)["base"]["email"]["user"].value(),
+            password=KVManager(config)["base"]["email"]["password"].value()
         )
     )
 

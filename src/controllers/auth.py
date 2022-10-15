@@ -11,7 +11,7 @@ from src import utils
 from src.services.auth import authenticate, logout, refresh_tokens
 from src.views import ErrorAPIResponse, LoginResponse, RegisterResponse
 from src.models import schemas
-from src.services.repository import UserRepository
+from src.services import repository
 
 router = APIRouter(responses={"400": {"model": ErrorAPIResponse}})
 docs = load_docs("auth.ini")
@@ -26,13 +26,12 @@ docs = load_docs("auth.ini")
 async def sign_up(
         user: schemas.UserSignUp,
         is_auth=Depends(JWTCookie(auto_error=False)),
-        UserRepo: UserRepository = UserRepository()
 ):
     if is_auth:
         raise APIError(920)
-    if await UserRepo.get_user_by_username_or_email(user.username, user.email):
+    if await repository.user.get_user_by_username_or_email(user.username, user.email):
         raise APIError(903)
-    return await UserRepo.create_user(**user.dict())
+    return await repository.user.create_user(**user.dict())
 
 
 @router.post(

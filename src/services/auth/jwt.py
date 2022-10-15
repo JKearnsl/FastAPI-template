@@ -5,8 +5,8 @@ from jose import jwt, JWTError
 from pydantic import ValidationError
 from fastapi import Response, Request
 
-from ...config import load_config
-from ...models import schemas
+from config import load_config
+from models import schemas
 
 config = load_config()
 

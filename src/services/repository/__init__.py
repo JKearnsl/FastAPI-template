@@ -1,2 +1,2 @@
 """Db abstraction layer"""
-from .user import UserRepository
+from . import user

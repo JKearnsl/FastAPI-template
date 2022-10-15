@@ -4,10 +4,10 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.responses import Response
 from fastapi.requests import Request
 
-from ..models import schemas, Role, UserStates
-from ..services.auth import JWTManager
-from ..services.auth import SessionManager
-from ..services.repository import UserRepository
+from models import schemas, Role, UserStates
+from services.auth import JWTManager
+from services.auth import SessionManager
+from services import repository
 
 
 class JWTMiddleware(BaseHTTPMiddleware):
@@ -17,13 +17,12 @@ class JWTMiddleware(BaseHTTPMiddleware):
             app,
             jwt: JWTManager = JWTManager(),
             session: SessionManager = SessionManager(),
-            UserRepo: UserRepository = UserRepository()
     ):
         super().__init__(app)
 
         self._jwt = jwt
         self._session = session
-        self.UserRepo = UserRepo
+        self.UserRepo = repository.user
 
         self.session_id = None
         self.current_tokens = None
