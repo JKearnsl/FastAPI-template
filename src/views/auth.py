@@ -1,4 +1,4 @@
-from ..models.schemas import User
+from models.schemas import User
 
 
 class LoginResponse(User):

@@ -24,7 +24,7 @@ class JWTMiddleware(BaseHTTPMiddleware):
         self._session = session
         self.UserRepo = repository.user
 
-        self.session_id = None
+        self.session_id = None  # TODO: решить проблему гонок
         self.current_tokens = None
         self._is_need_update = False
         self._is_auth = False

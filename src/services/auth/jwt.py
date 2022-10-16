@@ -106,7 +106,7 @@ class JWTManager:
         response.set_cookie(
             key=self.COOKIE_ACCESS_KEY,
             value=tokens.access_token,
-            secure=not config.debug,  # todo изменить конфиг
+            secure=config.is_secure_cookie,
             httponly=True,
             samesite="Strict",
             max_age=self.COOKIE_EXP,
@@ -116,7 +116,7 @@ class JWTManager:
         response.set_cookie(
             key=self.COOKIE_REFRESH_KEY,
             value=tokens.refresh_token,
-            secure=not config.debug,  # todo изменить конфиг
+            secure=config.is_secure_cookie,
             httponly=True,
             samesite="Strict",
             max_age=self.COOKIE_EXP,
