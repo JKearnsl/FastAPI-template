@@ -25,7 +25,7 @@ app = FastAPI(
     debug=config.debug,
     version=config.base.vers,
     description=config.base.description,
-    docs_url="/api/docs",
+    docs_url="/api/docs",  # TODO: исправить для прода
     redoc_url="/api/redoc",
     contact={
         "name": config.base.contact.name,

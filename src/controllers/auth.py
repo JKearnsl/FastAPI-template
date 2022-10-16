@@ -50,7 +50,7 @@ async def sign_in(
     return await authenticate(user.username, user.password, response)
 
 
-@router.post('/logout', summary="Выход из аккаунта")  # todo: dependes
+@router.post('/logout', dependencies=[Depends(JWTCookie())])
 async def logout_controller(request: Request, response: Response):
     await logout(request, response)
 
