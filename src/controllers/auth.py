@@ -29,11 +29,12 @@ async def sign_up(
 ):
     if is_auth:
         raise APIError(920)
-    if await repository.user.get_user_by_username_or_email(user.username, user.email):
+    if await repository.user.get_user_by_unique_username(user.username):
         raise APIError(903)
-    if await repository.user.get_user_by_unique_username_and_email(user.username, user.email):
-        raise APIError(903)
+    elif await repository.user.get_user_by_unique_email(user.email):
+        raise APIError(922)
     return await repository.user.create_user(**user.dict())
+
 
 @router.post(
     "/signIn",
@@ -49,6 +50,7 @@ async def sign_in(
     if is_auth:
         raise APIError(920)
     return await authenticate(user.username, user.password, response)
+
 
 
 @router.post('/logout', dependencies=[Depends(JWTCookie())])

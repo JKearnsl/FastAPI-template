@@ -39,5 +39,9 @@ async def get_user_by_username_or_email(username: str, email: str) -> Optional[t
     return await tables.User.filter(Q(username=username) | Q(email=email)).first()
 
 
-async def get_user_by_unique_username_and_email(username: str, email: str):
-    return await tables.User.filter(Q(username__iexact=username) | Q(email__iexact=email)).first()
+async def get_user_by_unique_username(username: str):
+    return await tables.User.filter(Q(username__iexact=username)).first()
+
+
+async def get_user_by_unique_email(email: str):
+    return await tables.User.filter(Q(email__iexact=email)).first()
