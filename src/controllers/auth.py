@@ -31,8 +31,9 @@ async def sign_up(
         raise APIError(920)
     if await repository.user.get_user_by_username_or_email(user.username, user.email):
         raise APIError(903)
+    if await repository.user.get_user_by_unique_username_and_email(user.username, user.email):
+        raise APIError(903)
     return await repository.user.create_user(**user.dict())
-
 
 @router.post(
     "/signIn",

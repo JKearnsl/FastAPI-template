@@ -37,3 +37,7 @@ async def delete(user_id: int) -> None:
 
 async def get_user_by_username_or_email(username: str, email: str) -> Optional[tables.User]:
     return await tables.User.filter(Q(username=username) | Q(email=email)).first()
+
+
+async def get_user_by_unique_username_and_email(username: str, email: str):
+    return await tables.User.filter(Q(username__iexact=username) | Q(email__iexact=email)).first()
