@@ -1,1 +1,2 @@
-from src.controllers.auth import router as auth_router
+from . import auth
+from . import user

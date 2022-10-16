@@ -3,16 +3,21 @@ from typing import Optional
 
 from fastapi import Request, Response
 from config import load_config
-from utils import RedisClient
+import utils
 
 config = load_config()
 
 
 class SessionManager:
     COOKIE_EXP = 31536000
+    REDIS_EXP = 2592000
     COOKIE_PATH = "/api" if not config.debug else "/"   # todo: изменить конфиг
     COOKIE_DOMAIN = None
     COOKIE_SESSION_KEY = "session_id"
+
+    def __init__(self):
+        if not utils.RedisClient.redis_client:
+            utils.RedisClient.open_redis_client()
 
     def get_session_id(self, request: Request) -> Optional[int]:
         """
@@ -48,13 +53,13 @@ class SessionManager:
         response.set_cookie(
             key=self.COOKIE_SESSION_KEY,
             value=str(session_id),
-            secure=not config.debug,  # todo изменить конфиг
+            secure=config.is_secure_cookie,
             httponly=True,
             samesite="Strict",
             max_age=self.COOKIE_EXP,
             path=self.COOKIE_PATH
         )
-        await RedisClient.set(str(session_id), refresh_token)
+        await utils.RedisClient.set(str(session_id), refresh_token, expire=self.REDIS_EXP)
         return session_id
 
     async def delete_session_id(self, session_id: int, response: Response) -> None:
@@ -63,10 +68,10 @@ class SessionManager:
 
         :param
         """
-        await RedisClient.delete(str(session_id))
+        await utils.RedisClient.delete(str(session_id))
         response.delete_cookie(
             key=self.COOKIE_SESSION_KEY,
-            secure=not config.debug,   # todo изменить конфиг
+            secure=config.is_secure_cookie,
             httponly=True,
             samesite="Strict",
             path=self.COOKIE_PATH
@@ -79,7 +84,7 @@ class SessionManager:
         :param cookie_refresh_token:
         :return: True or False
         """
-        redis_refresh_token = await RedisClient.get(str(session_id))
+        redis_refresh_token = await utils.RedisClient.get(str(session_id))
         if not redis_refresh_token:
             return False
         if redis_refresh_token != cookie_refresh_token:

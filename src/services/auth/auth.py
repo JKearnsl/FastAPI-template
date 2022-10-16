@@ -44,6 +44,7 @@ async def authenticate(
     )
     jwt.set_jwt_cookie(response, tokens)
     await session.set_session_id(response, tokens.refresh_token)
+    return user
 
 
 async def logout(

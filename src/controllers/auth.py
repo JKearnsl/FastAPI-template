@@ -47,11 +47,10 @@ async def sign_in(
 ):
     if is_auth:
         raise APIError(920)
-    await authenticate(user.username, user.password, response)
-    # todo: return user info
+    return await authenticate(user.username, user.password, response)
 
 
-@router.post('/logout', summary="Выход из аккаунта")
+@router.post('/logout', summary="Выход из аккаунта")  # todo: dependes
 async def logout_controller(request: Request, response: Response):
     await logout(request, response)
 

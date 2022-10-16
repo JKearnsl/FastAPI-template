@@ -24,6 +24,7 @@ class RedisClient(object):
     log: logging.Logger = logging.getLogger(__name__)
     base_redis_init_kwargs: dict = {
         "encoding": "utf-8",
+        "decode_responses": True,
         "port": config.db.redis.port,
     }
     connection_kwargs: dict = {}
@@ -55,8 +56,6 @@ class RedisClient(object):
                 "redis://{0:s}/0".format(config.db.redis.host),
                 **cls.base_redis_init_kwargs,
             )
-            print(cls.redis_client)  # todo: delete this line
-
         return cls.redis_client
 
     @classmethod
@@ -83,35 +82,36 @@ class RedisClient(object):
             return await redis_client.ping()
         except RedisError as ex:
             cls.log.exception(
-                "Redis PING command finished with exception",
+                "Команда Redis PING завершена с исключением",
                 exc_info=(type(ex), ex, ex.__traceback__),
             )
             return False
 
     @classmethod
-    async def set(cls, key, value):
-        """Execute Redis SET command.
-        Set key to hold the string value. If key already holds a value, it is
-        overwritten, regardless of its type.
+    async def set(cls, key: str, value: str, expire: int = 2592000):
+        """Выполнить команду Redis SET.
+         Установите ключ для хранения строкового значения. Если ключ уже содержит значение, оно
+         перезаписывается независимо от его типа.
         Args:
-            key (str): Redis db key.
-            value (str): Value to be set.
+            key (str): Ключ.
+            value (str): Значение, которое необходимо установить.
+            expire (int): Время в секундах, по истечении которого ключ будет удален.
+            (по умолчанию 30 дней)
         Returns:
-            response: Redis SET command response, for more info
+            response: Ответ команды Redis SET, для получения дополнительной информации
                 look: https://redis.io/commands/set#return-value
         Raises:
-            aioredis.RedisError: If Redis client failed while executing command.
+            aioredis.RedisError: Если клиент Redis дал сбой при выполнении команды.
         """
         redis_client = cls.redis_client
 
-        cls.log.debug(
-            "Preform Redis SET command, key: {}, value: {}".format(key, value)
-        )
+        cls.log.debug(f"Сформирована Redis SET команда, key: {key}, value: {value}")
         try:
             await redis_client.set(key, value)
+            await redis_client.expire(key, expire)
         except RedisError as ex:
             cls.log.exception(
-                "Redis SET command finished with exception",
+                "Команда Redis SET завершена с исключением",
                 exc_info=(type(ex), ex, ex.__traceback__),
             )
             raise ex

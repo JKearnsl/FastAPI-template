@@ -54,7 +54,6 @@ async def on_startup():
     log.debug("Execute FastAPI startup event handler.")
     if config.db.redis:
         await RedisClient.open_redis_client()
-
     AiohttpClient.get_aiohttp_client()
 
 

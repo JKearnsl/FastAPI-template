@@ -25,11 +25,14 @@ async def create_user(**kwargs) -> tables.User:
 
 
 async def update_user(user_id: int, **kwargs) -> tables.User:
-    return await tables.User.update_from_dict(await get_user(id=user_id), kwargs)  # todo: упростить
+    user = await tables.User.update_from_dict(await get_user(id=user_id), kwargs)
+    await user.save()
+    return user
 
 
-async def delete_user(user_id: int) -> int:
-    return await tables.User.filter(id=user_id).delete()
+async def delete(user_id: int) -> None:
+    await update_user(user_id, state_id=UserStates.deleted.value)
+    await tables.UserDeleted.create(id=user_id)
 
 
 async def get_user_by_username_or_email(username: str, email: str) -> Optional[tables.User]:
