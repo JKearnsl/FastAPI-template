@@ -8,7 +8,7 @@ from src.utils import get_hashed_password
 
 
 async def get_user(*args, **kwargs) -> Optional[tables.User]:
-    return await tables.User.get_or_none(*args, **kwargs)
+    return await tables.User.filter(*args, **kwargs).first()
 
 
 async def get_users(*args, **kwargs) -> Optional[List[tables.User]]:
@@ -33,7 +33,3 @@ async def update_user(user_id: int, **kwargs) -> tables.User:
 async def delete(user_id: int) -> None:
     await update_user(user_id, state_id=UserStates.deleted.value)
     await tables.UserDeleted.create(id=user_id)
-
-
-async def get_user_by_username_or_email(username: str, email: str) -> Optional[tables.User]:
-    return await tables.User.filter(Q(username=username) | Q(email=email)).first()
