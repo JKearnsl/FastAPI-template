@@ -29,9 +29,9 @@ async def sign_up(
 ):
     if is_auth:
         raise APIError(920)
-    if await repository.user.get_user_by_unique_username(user.username):
+    if await repository.user.get_user(username__iexact=user.username):
         raise APIError(903)
-    elif await repository.user.get_user_by_unique_email(user.email):
+    elif await repository.user.get_user(email__iexact=user.email):
         raise APIError(922)
     return await repository.user.create_user(**user.dict())
 
@@ -49,6 +49,7 @@ async def sign_in(
 ):
     if is_auth:
         raise APIError(920)
+
     return await authenticate(user.username, user.password, response)
 
 
