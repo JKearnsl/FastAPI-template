@@ -3,7 +3,7 @@ import typing
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.responses import JSONResponse
 
-from ..views import ErrorAPIResponse, Error
+from views import ErrorAPIResponse, Error
 
 with open("error_list.json", "r", encoding="utf-8") as file:
     error_list = json.load(file)

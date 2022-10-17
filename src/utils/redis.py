@@ -10,14 +10,15 @@ config = load_config()
 
 
 class RedisClient(object):
-    """Define Redis utility.
-    Utility class for handling Redis database connection and operations.
+    """Определение утилиты Redis.
+     Служебный класс для обработки подключения к базе данных Redis и операций.
     Attributes:
-        redis_client (aioredis.Redis, optional): Redis client object instance.
-        log (logging.Logger): Logging handler for this class.
-        base_redis_init_kwargs (dict): Common kwargs regardless other Redis
-            configuration
-        connection_kwargs (dict, optional): Extra kwargs for Redis object init.
+        redis_client (aioredis.Redis, optional): Экземпляр клиентского объекта Redis.
+        log (logging.Logger): Обработчик ведения журнала для этого класса.
+        base_redis_init_kwargs (dict): Общие kwargs независимо от других Redis
+            конфигурациях.
+        connection_kwargs (dict, optional): Дополнительные kwargs для инициализации
+            объекта Redis.
     """
 
     redis_client: aioredis.Redis = None
@@ -31,13 +32,13 @@ class RedisClient(object):
 
     @classmethod
     def open_redis_client(cls):
-        """Create Redis client session object instance.
-        Based on configuration create either Redis client or Redis Sentinel.
+        """Создает экземпляр объекта сеанса клиента Redis.
+         В зависимости от конфигурации создает клиент Redis или Redis Sentinel.
         Returns:
-            aioredis.Redis: Redis object instance.
+            aioredis.Redis: Экземпляр объекта Redis.
         """
         if cls.redis_client is None:
-            cls.log.debug("Initialize Redis client.")
+            cls.log.debug("Инициализация клиента Redis.")
 
             if config.db.redis.username:
                 cls.connection_kwargs.update({"username": config.db.redis.username})
@@ -51,6 +52,7 @@ class RedisClient(object):
             #     )
             #     cls.redis_client = sentinel.master_for("mymaster")
             # else:
+
             cls.base_redis_init_kwargs.update(cls.connection_kwargs)
             cls.redis_client = aioredis.from_url(
                 "redis://{0:s}/0".format(config.db.redis.host),
@@ -60,24 +62,23 @@ class RedisClient(object):
 
     @classmethod
     async def close_redis_client(cls):
-        """Close Redis client."""
+        """Завершение клиента Redis."""
         if cls.redis_client:
-            cls.log.debug("Closing Redis client")
+            cls.log.debug("Завершение клиента Redis.")
             await cls.redis_client.close()
 
     @classmethod
     async def ping(cls):
-        """Execute Redis PING command.
-        Ping the Redis server.
+        """Выполнить команду Redis PING.
+         Пингует сервер Redis.
         Returns:
-            response: Boolean, whether Redis client could ping Redis server.
+            response: Логическое значение, может ли клиент Redis пинговать сервер Redis.
         Raises:
-            aioredis.RedisError: If Redis client failed while executing command.
+            aioredis.RedisError: Если клиент Redis дал сбой при выполнении команды.
         """
-        # Note: Not sure if this shouldn't be deep copy instead?
         redis_client = cls.redis_client
 
-        cls.log.debug("Preform Redis PING command")
+        cls.log.debug("Сформирована Redis PING команда")
         try:
             return await redis_client.ping()
         except RedisError as ex:
@@ -118,115 +119,105 @@ class RedisClient(object):
 
     @classmethod
     async def rpush(cls, key, value):
-        """Execute Redis RPUSH command.
-        Insert all the specified values at the tail of the list stored at key.
-        If key does not exist, it is created as empty list before performing
-        the push operation. When key holds a value that is not a list, an
-        error is returned.
+        """Выполнить команду Redis RPUSH.
+         Вставляет все указанные значения в конец списка, хранящегося в ключе.
+         Если ключ не существует, он создается как пустой список перед выполнением
+         операция проталкивания. Когда ключ содержит значение, не являющееся списком,
+         возвращается ошибка.
         Args:
-            key (str): Redis db key.
-            value (str, list): Single or multiple values to append.
+            key (str): Ключ.
+            value (str, list): Одно или несколько значений для добавления.
         Returns:
-            response: Length of the list after the push operation.
+            response: Длина списка после операции push.
         Raises:
-            aioredis.RedisError: If Redis client failed while executing command.
+            aioredis.RedisError: Если клиент Redis дал сбой при выполнении команды.
         """
         redis_client = cls.redis_client
 
-        cls.log.debug(
-            "Preform Redis RPUSH command, key: {}, value: {}".format(key, value)
-        )
+        cls.log.debug(f"Сформирована Redis RPUSH команда, key: {key}, value: {value}")
         try:
             await redis_client.rpush(key, value)
         except RedisError as ex:
             cls.log.exception(
-                "Redis RPUSH command finished with exception",
+                "Команда Redis RPUSH завершена с исключением",
                 exc_info=(type(ex), ex, ex.__traceback__),
             )
             raise ex
 
     @classmethod
     async def exists(cls, key):
-        """Execute Redis EXISTS command.
-        Returns if key exists.
+        """Выполнить команду Redis EXISTS.
+        Возвращает True, если ключ существует.
         Args:
             key (str): Redis db key.
         Returns:
-            response: Boolean whether key exists in Redis db.
+            response: Логическое значение, определяющее, существует ли ключ в Redis db.
         Raises:
-            aioredis.RedisError: If Redis client failed while executing command.
+            aioredis.RedisError: Если клиент Redis дал сбой при выполнении команды.
         """
         redis_client = cls.redis_client
 
-        cls.log.debug(
-            "Preform Redis EXISTS command, key: {}, exists".format(key)
-        )
+        cls.log.debug(f"Сформирована Redis EXISTS команда, key: {key}, exists")
         try:
             return await redis_client.exists(key)
         except RedisError as ex:
             cls.log.exception(
-                "Redis EXISTS command finished with exception",
+                "Команда Redis EXISTS завершена с исключением",
                 exc_info=(type(ex), ex, ex.__traceback__),
             )
             raise ex
 
     @classmethod
     async def get(cls, key):
-        """Execute Redis GET command.
-        Get the value of key. If the key does not exist the special value None
-        is returned. An error is returned if the value stored at key is not a
-        string, because GET only handles string values.
+        """Выполнить команду Redis GET.
+         Получает значение ключа. Если ключ не существует, то возвращается специальное
+         значение None. Возвращается исключение, если значение, хранящееся в ключе, не является
+         string, потому что GET обрабатывает только строковые значения.
         Args:
-            key (str): Redis db key.
+            key (str): Ключ.
         Returns:
-            response: Value of key.
+            response: Значение ключа.
         Raises:
-            aioredis.RedisError: If Redis client failed while executing command.
+            aioredis.RedisError: Если клиент Redis дал сбой при выполнении команды.
         """
         redis_client = cls.redis_client
 
-        cls.log.debug("Preform Redis GET command, key: {}".format(key))
+        cls.log.debug(f"Сформирована Redis GET команда, key: {key}")
         try:
             return await redis_client.get(key)
         except RedisError as ex:
             cls.log.exception(
-                "Redis GET command finished with exception",
+                "Команда Redis GET завершена с исключением",
                 exc_info=(type(ex), ex, ex.__traceback__),
             )
             raise ex
 
     @classmethod
     async def lrange(cls, key, start, end):
-        """Execute Redis LRANGE command.
-        Returns the specified elements of the list stored at key. The offsets
-        start and stop are zero-based indexes, with 0 being the first element
-        of the list (the head of the list), 1 being the next element and so on.
-        These offsets can also be negative numbers indicating offsets starting
-        at the end of the list. For example, -1 is the last element of the
-        list, -2 the penultimate, and so on.
+        """Выполнить команду Redis LRANGE.
+         Возвращает указанные элементы списка, хранящегося в ключе. Смещения
+         start и stop — это индексы, начинающиеся с нуля, где 0 — первый элемент
+         списка (голова списка), 1 — следующий элемент и так далее.
+         Эти смещения также могут быть отрицательными числами, указывающими, что смещения начинаются
+         в конце списка. Например, -1 — это последний элемент
+         список, -2 предпоследний и так далее.
         Args:
-            key (str): Redis db key.
-            start (int): Start offset value.
-            end (int): End offset value.
+            key (str): Ключ.
+            start (int): Начальное значение смещения.
+            end (int): Конечное значение смещения.
         Returns:
-            response: Returns the specified elements of the list stored at key.
+            response: Возвращает указанные элементы списка, хранящегося в ключе.
         Raises:
-            aioredis.RedisError: If Redis client failed while executing command.
+            aioredis.RedisError: Если клиент Redis дал сбой при выполнении команды.
         """
         redis_client = cls.redis_client
 
-        cls.log.debug(
-            "Preform Redis LRANGE command, key: {}, start: {}, end: {}".format(
-                key,
-                start,
-                end,
-            )
-        )
+        cls.log.debug(f"Сформирована Redis LRANGE команда, key: {key}, start: {start}, end: {end}")
         try:
             return await redis_client.lrange(key, start, end)
         except RedisError as ex:
             cls.log.exception(
-                "Redis LRANGE command finished with exception",
+                "Команда Redis LRANGE завершена с исключением",
                 exc_info=(type(ex), ex, ex.__traceback__),
             )
             raise ex
@@ -235,12 +226,12 @@ class RedisClient(object):
     async def delete(cls, key: str):
         redis_client = cls.redis_client
 
-        cls.log.debug("Preform Redis DELETE command, key: {}".format(key))
+        cls.log.debug(f"Сформирована Redis DELETE команда, key: {key}")
         try:
             return await redis_client.delete(key)
         except RedisError as ex:
             cls.log.exception(
-                "Redis DELETE command finished with exception",
+                "Команда Redis DELETE завершена с исключением",
                 exc_info=(type(ex), ex, ex.__traceback__),
             )
             raise ex

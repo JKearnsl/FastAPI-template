@@ -25,18 +25,12 @@ class JWTMiddleware(BaseHTTPMiddleware):
         self.UserRepo = repository.user
 
     async def dispatch(self, request: Request, call_next):
-        # vars объявлены здесь, чтобы они были доступны в обоих функциях
         session_id = self.session.get_session_id(request)
         current_tokens = self.jwt.get_jwt_cookie(request)
         is_need_update = False
         is_auth = False
 
-        await self.pre_process(request, is_auth, is_need_update, current_tokens, session_id)
-        response = await call_next(request)
-        await self.post_process(response, is_need_update, current_tokens, session_id)
-        return response
-
-    async def pre_process(self, request: Request, is_auth, is_need_update, current_tokens, session_id):
+        # ----- pre_process -----
         # Проверка авторизации
         if current_tokens:
             is_valid_access_token = self.jwt.is_valid_access_token(current_tokens.access_token)
@@ -71,6 +65,7 @@ class JWTMiddleware(BaseHTTPMiddleware):
                 request.cookies["access_token"] = new_tokens.access_token
                 request.cookies["refresh_token"] = new_tokens.refresh_token
                 current_tokens = new_tokens
+                is_auth = True
 
         # Установка данных авторизации
         if is_auth:
@@ -81,11 +76,15 @@ class JWTMiddleware(BaseHTTPMiddleware):
             request.scope["user"] = UnauthenticatedUser()
             request.scope["auth"] = AuthCredentials()
 
-    async def post_process(self, response: Response, is_need_update, current_tokens, session_id):
+        response = await call_next(request)
+
+        # ----- post_process -----
         if is_need_update:
             # Обновляем response
             self.jwt.set_jwt_cookie(response, current_tokens)
             await self.session.set_session_id(response, current_tokens.refresh_token, session_id)
+
+        return response
 
 
 class AuthenticatedUser(BaseUser):

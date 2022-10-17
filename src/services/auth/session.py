@@ -11,7 +11,7 @@ config = load_config()
 class SessionManager:
     COOKIE_EXP = 31536000
     REDIS_EXP = 2592000
-    COOKIE_PATH = "/api" if not config.debug else "/"   # todo: изменить конфиг
+    COOKIE_PATH = "/api"
     COOKIE_DOMAIN = None
     COOKIE_SESSION_KEY = "session_id"
 

@@ -19,7 +19,7 @@ class JWTManager:
     JWT_REFRESH_SECRET_KEY = config.base.jwt.JWT_REFRESH_SECRET_KEY
 
     COOKIE_EXP = 31536000
-    COOKIE_PATH = "/api" if not config.debug else "/"  # todo изменить конфиг
+    COOKIE_PATH = "/api"
     COOKIE_DOMAIN = None
     COOKIE_ACCESS_KEY = "access_token"
     COOKIE_REFRESH_KEY = "refresh_token"

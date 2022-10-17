@@ -1,7 +1,7 @@
 from fastapi import Request
 
-from ..exceptions.api import APIError
-from ..models import Role
+from exceptions.api import APIError
+from models import Role
 
 
 class MinRoleFilter:

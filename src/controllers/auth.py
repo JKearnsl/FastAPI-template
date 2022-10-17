@@ -3,6 +3,7 @@ import logging
 from fastapi import APIRouter, Depends
 from fastapi.requests import Request
 from fastapi.responses import Response
+from tortoise.functions import Upper
 
 from src.config import load_docs
 from src.dependencies import JWTCookie
@@ -20,8 +21,8 @@ docs = load_docs("auth.ini")
 @router.post(
     "/signUp",
     response_model=RegisterResponse,
-    summary=docs["signIn"]["summary"],
-    description=docs["signIn"]["description"]
+    summary=docs["signUp"]["summary"],
+    description=docs["signUp"]["description"]
 )
 async def sign_up(
         user: schemas.UserSignUp,
@@ -39,8 +40,8 @@ async def sign_up(
 @router.post(
     "/signIn",
     response_model=LoginResponse,
-    summary=docs["signUp"]["summary"],
-    description=docs["signUp"]["description"]
+    summary=docs["signIn"]["summary"],
+    description=docs["signIn"]["description"]
 )
 async def sign_in(
         user: schemas.UserSignIn,
@@ -54,16 +55,21 @@ async def sign_in(
 
 
 
-@router.post('/logout', dependencies=[Depends(JWTCookie())])
+@router.post(
+    '/logout',
+    dependencies=[Depends(JWTCookie())],
+    summary=docs["logout"]["summary"],
+    description=docs["logout"]["description"]
+)
 async def logout_controller(request: Request, response: Response):
     await logout(request, response)
 
 
-@router.post('/refresh_tokens', dependencies=[Depends(JWTCookie())])
+@router.post(
+    '/refresh_tokens',
+    dependencies=[Depends(JWTCookie())],
+    summary=docs["refresh_tokens"]["summary"],
+    description=docs["refresh_tokens"]["description"]
+)
 async def refresh(request: Request, response: Response):
     await refresh_tokens(request, response)
-
-
-@router.get("/test", summary=docs["test"]["summary"], description=docs["test"]["description"])
-async def test():
-    return {"resp": await utils.RedisClient.ping()}
