@@ -86,5 +86,9 @@
   "921" : {
     "http_status_code": 400,
     "message": "Password содержит ошибки"
+  },
+   "922" : {
+    "http_status_code": 400,
+    "message": "Email уже зарегистрирован"
   }
 }
