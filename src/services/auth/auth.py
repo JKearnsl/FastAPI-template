@@ -31,11 +31,11 @@ async def authenticate(
         raise APIError(904)
     if not utils.verify_password(password, user.hashed_password):
         raise APIError(905)
-    if user.state_id == UserStates.not_confirmed:
+    if UserStates(user.state_id) == UserStates.not_confirmed:
         raise APIError(907)
-    if user.state_id == UserStates.blocked:
+    if UserStates(user.state_id) == UserStates.blocked:
         raise APIError(906)
-    if user.state_id == UserStates.deleted:
+    if UserStates(user.state_id) == UserStates.deleted:
         raise APIError(904)
     # установка токенов
     tokens = schemas.Tokens(
@@ -84,7 +84,7 @@ async def refresh_tokens(
     session_id = session.get_session_id(request)
     user = await repository.user.get_user(id=jwt.decode_refresh_token(current_tokens.refresh_token).id)
 
-    if not (user.state_id == UserStates.active):
+    if not (UserStates(user.state_id) == UserStates.active):
         raise APIError(906)
 
     new_payload = schemas.TokenPayload(

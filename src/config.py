@@ -68,6 +68,7 @@ class Base:
 @dataclass
 class Config:
     debug: bool
+    mode: str
     is_secure_cookie: bool
     base: Base
     email: Email
@@ -98,6 +99,7 @@ def load_config() -> Config:
     debug = os.getenv('DEBUG')
     return Config(
         debug=bool(int(debug)),
+        mode=mode,
         is_secure_cookie=bool(int(KVManager(config)[mode]["is_secure_cookie"].value())),
         base=Base(
             name=KVManager(config)["base"]["name"].value(),

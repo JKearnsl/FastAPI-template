@@ -19,14 +19,15 @@ from src.utils import RedisClient, AiohttpClient
 config = load_config()
 log = logging.getLogger(__name__)
 
-log.debug("Initialize FastAPI application node.")
+log.debug("Инициализация приложения FastAPI.")
 app = FastAPI(
     title=config.base.name,
     debug=config.debug,
     version=config.base.vers,
     description=config.base.description,
-    docs_url="/api/docs",  # TODO: исправить для прода
-    redoc_url="/api/redoc",
+    root_path="/api" if not config.debug else "/",
+    docs_url="/api/docs" if config.debug else "/docs",
+    redoc_url="/api/redoc" if config.debug else "/redoc",
     contact={
         "name": config.base.contact.name,
         "url": config.base.contact.url,
@@ -51,7 +52,7 @@ register_tortoise(
 
 @app.on_event("startup")
 async def on_startup():
-    log.debug("Execute FastAPI startup event handler.")
+    log.debug("Выполнение обработчика события старта FastAPI.")
     if config.db.redis:
         await RedisClient.open_redis_client()
     AiohttpClient.get_aiohttp_client()
@@ -59,17 +60,18 @@ async def on_startup():
 
 @app.on_event("shutdown")
 async def on_shutdown():
-    log.debug("Execute FastAPI shutdown event handler.")
+    log.debug("Выполнение обработчика события закрытия FastAPI.")
     # Gracefully close utilities.
-    if config.db.postgresql:
+    if config.db.redis:
         await RedisClient.close_redis_client()
     await AiohttpClient.close_aiohttp_client()
 
 
-log.debug("Add application routes.")
+log.debug("Добавление маршрутов приложения.")
 app.include_router(root_api_router)
-log.debug("Register global exception handler for custom HTTPException.")
+log.debug("Регистрация обработчиков исключений.")
 app.add_exception_handler(APIError, api_exception_handler)
 app.add_exception_handler(404, not_found_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
+log.debug("Регистрация промежуточного ПО.")
 app.add_middleware(JWTMiddleware)
