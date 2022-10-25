@@ -28,9 +28,20 @@ class PostgresConfig:
 
 
 @dataclass
+class S3Config:
+    bucket: str
+    endpoint_url: str
+    region_name: str
+    aws_access_key_id: str
+    aws_secret_access_key: str
+    service_name: str = "s3"
+
+
+@dataclass
 class DbConfig:
     postgresql: PostgresConfig
     redis: Optional[RedisConfig]
+    s3: Optional[S3Config]
 
 
 @dataclass
@@ -73,6 +84,7 @@ class Config:
     base: Base
     email: Email
     db: DbConfig
+
 
 
 class KVManager:
@@ -128,6 +140,13 @@ def load_config() -> Config:
                 username=None,
                 password=KVManager(config)[mode]["database"]["redis"]["password"].value(),
                 port=int(KVManager(config)[mode]["database"]["redis"]["port"].value())
+            ),
+            s3=S3Config(
+                endpoint_url=KVManager(config)[mode]["database"]["s3"]["endpoint_url"].value(),
+                region_name=KVManager(config)[mode]["database"]["s3"]["region_name"].value(),
+                aws_access_key_id=KVManager(config)[mode]["database"]["s3"]["aws_access_key_id"].value(),
+                aws_secret_access_key=KVManager(config)[mode]["database"]["s3"]["aws_secret_access_key"].value(),
+                bucket=KVManager(config)[mode]["database"]["s3"]["bucket"].value()
             )
         ),
         email=Email(
